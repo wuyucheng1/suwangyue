@@ -1,0 +1,218 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    font-family: "Microsoft YaHei", sans-serif;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+/* ============================== */
+/* ========== PC 端样式 ========== */
+/* ============================== */
+.game-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3vh 2vw;
+}
+.top-players {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2.5vw;
+}
+.player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1vh;
+}
+.player-name {
+    font-size: 2.2vh;
+    font-weight: bold;
+    white-space: nowrap;
+}
+.card {
+    width: 8vw;
+    height: 11vw;
+    max-width: 90px;
+    max-height: 120px;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    text-align: center;
+    gap: 3px;
+}
+.card-name {
+    font-size: clamp(0.6rem, 1.4vw, 1rem);
+    line-height: 1.1;
+}
+.card-lunar {
+    font-size: clamp(0.4rem, 0.9vw, 0.6rem);
+    opacity: 0.9;
+}
+.card-group {
+    display: flex;
+    gap: 0.2vw;
+}
+.center-circle {
+    width: 26vw;
+    height: 26vw;
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bottom-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3vh;
+    padding-bottom: 2vh;
+}
+.bottom-card {
+    width: 13vw;
+    height: 17vw;
+    max-width: 130px;
+    max-height: 170px;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    text-align: center;
+    gap: 4px;
+}
+.bottom-card .card-name {
+    font-size: clamp(0.7rem, 1.8vw, 1.1rem);
+}
+.bottom-card .card-lunar {
+    font-size: clamp(0.45rem, 1.1vw, 0.7rem);
+}
+.buttons {
+    display: flex;
+    gap: 3vw;
+}
+button {
+    padding: 2vh 4vw;
+    font-size: 2vh;
+    background: #222;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+button:hover {
+    background: #444;
+}
+.corner-btn {
+    position: fixed;
+    bottom: 3vh;
+    right: 2vw;
+    padding: 2vh 4vw;
+}
+/* ============================== */
+/* ======== 移动端独立样式 ======= */
+/* ============================== */
+@media (max-width: 768px) {
+    .game-container {
+        padding: 2vh 2vw !important;
+    }
+    .top-players {
+        gap: 2vw !important;
+    }
+    .player {
+        gap: 0.8vh !important;
+    }
+    .player-name {
+        font-size: 1.8vh !important;
+    }
+    .card {
+        width: 14vw !important;
+        height: 19vw !important;
+        max-width: none !important;
+        max-height: none !important;
+        padding: 3px !important;
+        gap: 2px !important;
+    }
+    .card-name {
+        font-size: 3.2vw !important;
+    }
+    .card-lunar {
+        font-size: 2.2vw !important;
+    }
+    .card-group {
+        gap: 0.15vw !important;
+    }
+    /* 移动端同步放大：圆圈 + 内部卡牌 */
+    .center-circle {
+        width: 40vw !important;
+        height: 40vw !important;
+        max-width: none !important;
+        max-height: none !important;
+    }
+    .center-circle .card {
+        width: 20vw !important;
+        height: 28vw !important;
+    }
+    .center-circle .card-name {
+        font-size: 4.2vw !important;
+    }
+    .center-circle .card-lunar {
+        font-size: 2.8vw !important;
+    }
+    /* 按钮整体上移，缩小上下间距 */
+    .bottom-area {
+        gap: 1.5vh !important;
+        padding-bottom: 4vh !important;
+    }
+    .bottom-card {
+        width: 20vw !important;
+        height: 26vw !important;
+        max-width: none !important;
+        max-height: none !important;
+    }
+    .bottom-card .card-name {
+        font-size: 4vw !important;
+    }
+    .bottom-card .card-lunar {
+        font-size: 2.8vw !important;
+    }
+    .buttons {
+        gap: 4vw !important;
+    }
+    button {
+        padding: 1.8vh 5vw !important;
+        font-size: 1.8vh !important;
+    }
+    .corner-btn {
+        padding: 1.8vh 5vw !important;
+        bottom: 2.5vh !important;
+        right: 2.5vw !important;
+    }
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <title>十日终焉 朔望月</title>
+    <script>
+        var source=new EventSource("/api/stream/")
+        var idc;
+        function deal(event){
+            data=JSON.parse(event.data)
+            switch (data['event']) {
+                case 'addplayer':
+                    palyeradd(data['name'],data['id'])
+                    break;  
+                case 'minpai':
+                    minpai(data['id'],data['pai'])
+                    break;    
+                case 'operate':
+                    operate(data['id'])
+                    break
+                case 'anpai':
+                    anpai(data['id'])
+                    break              
+                default:
+                    break;
+            }
+        }
+        var a=0
+        $('#g').click(()=>{
+            $.post('/api/grj',{'id':idc,'cho':'g'})
+            $('.bottons').hide()
+        })
+        $('#r').click(()=>{
+            $.post('/api/grj',{'id':idc,'cho':'r'})
+            $('.bottons').hide()
+        })
+        $('#j').click(()=>{
+            $.post('/api/grj',{'id':idc,'cho':'j'})
+            $('.bottons').hide()
+        })
+        function operate(id){
+            $('.bottons').show()
+        }
+        function anpai(id){
+            $.post('/api/anpai',{'id':idc},(data,sta)=>{
+                $('#an').append('<div class="card-name">'+data['name']+'</div>')
+                $('#an').append('<div class="card-lunar">'+data['time']+'</div>')
+
+            })
+        }
+        function minpai(id,pai){
+            if(id==idc){
+                $('#min').append('<div class="card-name">'+pai['name']+'</div>')
+                $('#min').append('<div class="card-lunar">'+pai['time']+'</div>')
+            }else{
+                $('#'+id+' #b').append('<div class="card-name">'+pai['name']+'</div>')
+                $('#'+id+' #b').append('<div class="card-lunar">'+pai['time']+'</div>')
+            }
+        }
+        function palyeradd(name,id){
+            //name:string id:string
+            if(idc==id)return;
+            $(".top-palyers").append('<div class="player" id='+id+'>\
+                <div class="player-name">'+name+'</div>\
+                <div class="card-group">\
+                    <div class="card" id="b">\
+                    </div>\
+                    <div class="card" id="d">\
+                    </div>\
+                </div>\
+            </div>')
+        }
+        
+        $(function(){
+            $('.bottons').hide()
+            $("#sendname").click(function(){
+                if($("#name").val()!=""){
+                    $.post("/api/id",{"name":$("name").val()},function(data,sta){
+                        data=JSON.parse(data)
+                        if(data['id']=="error"){
+                            alert(data['error'])
+                        }else{
+                            idc=data['id']
+                            $("#start").hide()
+                            source.addEventListener("json",deal)
+                        }
+                    })
+                }
+            })
+        }) 
+    </script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+    <div style="width: 100%;height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;" id="start">
+        <p>你的名字 :<input type="text" id="name"></p>
+        <button id="sendname">提交</button>
+    </div>
+    <div class="game-container">
+        <div class="top-players">
+            
+
+        <div class="center-circle">
+            <div class="card" id="center-card">
+                <div class="card-name">芒种</div>
+                <div class="card-lunar">四月十六</div>
+            </div>
+        </div>
+
+        <div class="bottom-area">
+            <div class="card-group">
+                <div class="bottom-card" id="min">
+                    
+                </div>
+                <div class="bottom-card" id="an">
+                    
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="g">跟注</button>
+                <button id="j">加注</button>
+                <button id="r">认输</button>
+            </div>
+        </div>
+    </div>
+    <button class="corner-btn">菜单</button>
+</body>
+</html>
