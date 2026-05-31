@@ -1,4 +1,6 @@
 from random import randint,choices
+import hashlib
+import json
 import threading
 import time
 from flask import *
@@ -36,78 +38,44 @@ dian = [
     "0715", "0815", "0909", "1001", "1208", "1230"
 ]
 players={}
-ids=[]
-playere=[]
-chudao=0
 qu=queue.Queue()
-start=False
 event=threading.Event()
-sta={}
-#TODO:修改发牌逻辑保证发牌每张只有一张
-def fapai():
-    global qu
-    a=choices(range(36),k=playernumber)
-    for i,cho in players,a:
-        id=i[0]
-        players[id]['pai'].append(cho)
-        qu.put(str({'event':'minpai','id':id,'pai':{'name':ming[cho],'time':riqi[cho]}}))
-gens=0
-def operate():
-    global qu
-    i=0
-    while True:
-        id=ids[i]
-        qu.put(str({'event':'operate','id':id,'res':'start'}))
-        event.wait()
-        event.clear()
-        if gens==playernumber:
-            break
-        i+=1
-        i%=playernumber
-anpai={}
-def faanpai():
-    global qu
-    a=choices(range(36),playernumber)
-    for i,j in players,a:
-        anpai[i[0]]=j
-    for i in players:
-        id=i[0]
-        qu.put(str({'event':'anpai','id':id,'res':'start'}))
-        event.wait()
-        event.clear()
+#players[id]['name']=player name
+#players[id]['dao]=player道数量
+#players[id]['pai'][0]=player明牌
+#players[id]['pai'][1]=player暗牌
+#qu.put({'event':...,'data':...})
+public=0
+def init():
+    global public
+    qu.put({'event':'start','a':'a'})
+    tempRandChoice=[i for i in range(1,37)]
+    temp=choices(tempRandChoice,k=playernumber*2+1)
+    public=temp[0]
+    for i,j in temp[1::2],players.keys():
+        players[j]['pai']=[].append(i)
+        players[j]['dao']=5
+    for i,j in temp[2::2],players.keys():
+        players[j]['pai'].append(i)
+
+def minpai():
+    a={'event':'minpai','data':{'public':{'name':ming[public],'time':riqi[public]}}}
+    for i in players.keys():
+        a['data'][i]={'name':ming[players[i]['pai'][0]],
+                      'time':riqi[players[i]['pai'][0]]}
+    qu.put(a)
 def main():
-    while True:
-        if start:
-            break
-        time.sleep(1)
-    fapai()
-    operate()
-    faanpai()
+    event.wait()
+    event.clear()
+    init()
+    minpai()
 
-
-@app.route("/api/id",methods=["POST"])
-def getid():
-    global qu
-    name = request.args.get("neme")
-    if name in players.keys():
-        return "{'id':'error','error':'名称已存在'}"
-    else:
-        a=randint(1,10000)
-        while not (a in ids):
-            a=randint(1,10000)
-        players[id]={'pai':[],'dao':chudao}
-        playere.append(str({'event':'addplayer','name':name,'id':id}))
-        sta[id]=1
-        if len(playere)==playernumber:
-            for i in playere:
-                qu.put(i)
-            playere.clear()
-        return "{'id':'"+str(a)+"'}"
 
 mma=1
 sum=0
 @app.route("/api/grj",methods=["POST"])
 def grj():
+    sta=[]
     global qu,mma,sum,gens
     #g跟注，j加注，r认输
     #TODO:公示状态
@@ -128,23 +96,33 @@ def grj():
     event.set()
     return "success"
 
-@app.route("/api/anpai",methods=["POST"])
-def getanpai():
-    global qu
+@app.route('/api/fapai',methods=["POST"])
+def fapai():
     args=request.args
-    id=args['id']['pai'].append(anpai[id])
-    players[id]
-    return str({'name':ming[anpai[id]],'time':riqi[anpai[id]]})
+    return json.dumps({'name':ming[players[args['id']]['pai'][1]],
+                       'time':riqi[players[args['id']]['pai'][1]]})
+
+@app.route("/api/name",methods=["POST"])
+def name():
+    args=request.args
+    players[args['id']]['name']=args['name']
+    qu.put({'event':'addplayer','data':{'name':f'{args[name]}'}})
+    if(len(players)==playernumber):
+        event.set()
+    return "succeed"
 
 @app.route("/")
 def index():
-    return render_template("./index.html")
+    id=hashlib.md5(str(time.time()+randint(1,1000)).encode('utf-8')).hexdigest()
+    players[id]={}
+    return render_template("./index.html",id=id)
 
 def gen():
     global qu
     while True:
         if not qu.empty():
-            yield f"event: json\ndata: {qu.get()}\n\n"
+            temp=qu.get()
+            yield f"event: {temp['event']}\ndata: {json.dumps(temp['data'])}\n\n"
         else:
             yield ":this is a command\n\n"
         time.sleep(1)
@@ -154,6 +132,6 @@ def stream():
     return Response(stream_with_context(gen()),mimetype='text/event-stream')
 
 if __name__=="__main__":
-    thread=threading.Thread(target=main)
-    thread.start()
+    #thread=threading.Thread(target=main)
+    #thread.start()
     app.run(debug=debug)

@@ -7,9 +7,10 @@
     <title>十日终焉 朔望月</title>
     <script>
         var source=new EventSource("/api/stream/")
-        var idc;
+        var idc="{{id}}";
         function deal(event){
             data=JSON.parse(event.data)
+            console.log(data)
             switch (data['event']) {
                 case 'addplayer':
                     palyeradd(data['name'],data['id'])
@@ -72,14 +73,13 @@
                 </div>\
             </div>')
         }
-        
-        $(function(){
-            $('.bottons').hide()
-            $("#sendname").click(function(){
-                if($("#name").val()!=""){
-                    $.post("/api/id",{"name":$("name").val()},function(data,sta){
-                        data=JSON.parse(data)
-                        if(data['id']=="error"){
+        function sendname(){
+            if($("#name").val()!=""){
+                console.log($("#name").val())
+                $.post("/api/id",{"name":$("name").val()},function(data,sta){
+                    data=JSON.parse(data)
+                    //$('.bottons').hide()
+                    if(data['id']=="error"){
                             alert(data['error'])
                         }else{
                             idc=data['id']
@@ -88,8 +88,8 @@
                         }
                     })
                 }
-            })
-        }) 
+            }
+
     </script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='index.css') }}">
 </head>
@@ -99,7 +99,7 @@
             align-items: center;
             justify-content: center;" id="start">
         <p>你的名字 :<input type="text" id="name"></p>
-        <button id="sendname">提交</button>
+        <button onclick="sendname()">提交</button>
     </div>
     <div class="game-container">
         <div class="top-players">
