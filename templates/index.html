@@ -3,49 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+    <!-- <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script> -->
     <title>十日终焉 朔望月</title>
     <script>
-        var source=new EventSource("/api/stream/")
         var idc="{{id}}";
-        function deal(event){
-            data=JSON.parse(event.data)
+        var source=new EventSource("/api/stream/"+idc)
+        source.addEventListener('addplayer',(data)=>{
             console.log(data)
-            switch (data['event']) {
-                case 'addplayer':
-                    palyeradd(data['name'],data['id'])
-                    break;  
-                case 'minpai':
-                    minpai(data['id'],data['pai'])
-                    break;    
-                case 'operate':
-                    operate(data['id'])
-                    break
-                case 'anpai':
-                    anpai(data['id'])
-                    break              
-                default:
-                    break;
+            data=JSON.parse(data['data'])
+            let id=data['id']
+            let name=data['name']
+            if(idc==id)return;
+            let str='<div class="player" id="'+id+'"><div class="player-name">'+name+'</div><div class="card-group"><div class="card" id="b"></div><div class="card" id="d"></div></div></div>'
+            console.log(str)
+            $(".top-players").append(str)
+        })
+        source.addEventListener('minpai',(data)=>{
+            data=JSON.parse(data['data'])
+            //minpai('public',data['public'])
+            for (let id in data) {
+                console.log(id,data[id])
+                minpai(id,data[id])
             }
-        }
+        })
+        source.addEventListener('kaipai',(data)=>{
+            data=JSON.parse(data['data'])
+            //minpai('public',data['public'])
+            for (let id in data) {
+                console.log(id,data[id])
+                kaipai(id,data[id])
+            }
+        })
+        source.addEventListener('grj',(data)=>{
+            data=JSON.parse(data['data'])
+            console.log(data)
+            if(data=='start'){
+                $('.buttons').show()
+            }else if(data=='end'){
+                $('.buttons').hide()
+            }else if(data=='dao'){
+                alert("道不够")
+            }
+        })
+        source.addEventListener('guanbo',(data)=>{
+            data=JSON.parse(data['data'])
+            alert(data)
+        })
+        $(window).unload(function(){
+            source.close()
+        })
         var a=0
-        $('#g').click(()=>{
-            $.post('/api/grj',{'id':idc,'cho':'g'})
-            $('.bottons').hide()
-        })
-        $('#r').click(()=>{
-            $.post('/api/grj',{'id':idc,'cho':'r'})
-            $('.bottons').hide()
-        })
-        $('#j').click(()=>{
-            $.post('/api/grj',{'id':idc,'cho':'j'})
-            $('.bottons').hide()
-        })
-        function operate(id){
-            $('.bottons').show()
+        function g(){
+            $.get('/api/grj',{'id':idc,'cho':'g'})
         }
+        function r(){
+            $.get('/api/grj',{'id':idc,'cho':'r'})
+        }
+        function j(){
+            let number=prompt("要加注多少道？")
+            $.get('/api/grj',{'id':idc,'cho':'j','number':number})
+        }
+        source.addEventListener("anpai",()=>{
+            anpai(idc)
+        })
         function anpai(id){
-            $.post('/api/anpai',{'id':idc},(data,sta)=>{
+            $.get('/api/fapai',{'id':idc},(data)=>{
+                data=JSON.parse(data)
                 $('#an').append('<div class="card-name">'+data['name']+'</div>')
                 $('#an').append('<div class="card-lunar">'+data['time']+'</div>')
 
@@ -55,40 +79,29 @@
             if(id==idc){
                 $('#min').append('<div class="card-name">'+pai['name']+'</div>')
                 $('#min').append('<div class="card-lunar">'+pai['time']+'</div>')
-            }else{
+            }else if(id!="public"){
                 $('#'+id+' #b').append('<div class="card-name">'+pai['name']+'</div>')
                 $('#'+id+' #b').append('<div class="card-lunar">'+pai['time']+'</div>')
+            }else{
+                $('#'+id).append('<div class="card-name">'+pai['name']+'</div>')
+                $('#'+id).append('<div class="card-lunar">'+pai['time']+'</div>')
             }
         }
-        function palyeradd(name,id){
-            //name:string id:string
-            if(idc==id)return;
-            $(".top-palyers").append('<div class="player" id='+id+'>\
-                <div class="player-name">'+name+'</div>\
-                <div class="card-group">\
-                    <div class="card" id="b">\
-                    </div>\
-                    <div class="card" id="d">\
-                    </div>\
-                </div>\
-            </div>')
+
+        function kaipai(id,pai){
+            if(id!=idc){
+                $('#'+id+' #d').append('<div class="card-name">'+pai['name']+'</div>')
+                $('#'+id+' #d').append('<div class="card-lunar">'+pai['time']+'</div>')
+            }
         }
         function sendname(){
             if($("#name").val()!=""){
-                console.log($("#name").val())
-                $.post("/api/id",{"name":$("name").val()},function(data,sta){
-                    data=JSON.parse(data)
-                    //$('.bottons').hide()
-                    if(data['id']=="error"){
-                            alert(data['error'])
-                        }else{
-                            idc=data['id']
-                            $("#start").hide()
-                            source.addEventListener("json",deal)
-                        }
-                    })
-                }
+                $.get("/api/name",{"name":$("#name").val(),"id":idc},()=>{
+                    $('#start').hide()
+                    $('.buttons').hide()
+                })
             }
+        }
 
     </script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='index.css') }}">
@@ -104,11 +117,10 @@
     <div class="game-container">
         <div class="top-players">
             
-
+        </div>
         <div class="center-circle">
-            <div class="card" id="center-card">
-                <div class="card-name">芒种</div>
-                <div class="card-lunar">四月十六</div>
+            <div class="card" id="public">
+
             </div>
         </div>
 
@@ -122,9 +134,9 @@
                 </div>
             </div>
             <div class="buttons">
-                <button id="g">跟注</button>
-                <button id="j">加注</button>
-                <button id="r">认输</button>
+                <button id="g" onclick="g()">跟注</button>
+                <button id="j" onclick="j()">加注</button>
+                <button id="r" onclick="r()">认输</button>
             </div>
         </div>
     </div>
